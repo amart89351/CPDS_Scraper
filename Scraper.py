@@ -14,43 +14,38 @@ location = 'United States'
 
 
 # Note: Selenium uses chromedriver to "control" Chrome
-service = Service("C:/Users/Andrew/Documents/CPDS/Scraper/chromedriver.exe")
+service = Service("CHROME DRIVER FILE LOCATION")
 options = webdriver.ChromeOptions()
 options.add_argument("--start-maximized")
 options.add_argument('--disable-blink-features=AutomationControlled')
 
-driver = webdriver.Chrome(service = service, options=options)
+driver = webdriver.Chrome(service=service, options=options)
 
 driver.implicitly_wait(10)
 
 driver.get('https://www.linkedin.com/login')
 
+# Finding and filling email and password fields
 email_input = driver.find_element(By.ID, 'username')
 password_input = driver.find_element(By.ID, 'password')
-email_input.send_keys('amartpsn@gmail.com')
-password_input.send_keys('Annakourn1!')
+email_input.send_keys('USERNAME')
+password_input.send_keys('PASSWORD')
 password_input.send_keys(Keys.ENTER)
 
+# Allowing time for the page to load
 time.sleep(50)
 
+# Parsing the loaded page with BeautifulSoup
 soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-# html = soup.prettify()
-
-# with open("out.txt","w") as out:
-#     for i in range(0, len(html)):
-#         try:
-#             out.write(html[i])
-#         except Exception:
-#             1+1
-
-
+# Setting up data list to store job information
 data = []
 for page_num in range(1, 150):
     url = f'https://www.linkedin.com/jobs/search/?keywords={query}&location={location}&start={8 * (page_num - 1)}'
     driver.get(url)
     last_height = driver.execute_script('return document.body.scrollHeight')
 
+    # Scrolling to the bottom of the page to load more job postings
     while True:
         driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
         new_height = driver.execute_script('return document.body.scrollHeight')
@@ -58,32 +53,27 @@ for page_num in range(1, 150):
             break
         last_height = new_height
 
-    time.sleep(20)  # Wait for 20 seconds
+    # Waiting for 20 seconds for the page to load fully
+    time.sleep(20)
 
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     li_class = "ember-view jobs-search-results__list-item occludable-update p0 relative scaffold-layout__list-item"
     try:
-        job_postings = soup.find('ul', class_ = 'scaffold-layout__list-container').find_all('li', class_ = li_class)
+        job_postings = soup.find('ul', class_='scaffold-layout__list-container').find_all('li', class_=li_class)
     except:
         print("Fail To Find Job Postings")
         pass
 
-    # with open("UL.txt","w") as out:
-    #     out.write(str(job_postings) + '\n')
-    
-    # Extract relevant information from each job posting and store it in a list of dictionaries
-    job_number = 0
+    # Extracting relevant information from each job posting
     for job_posting in job_postings:
-        job_number += 1
-        # with open(f"LI{job_number}.txt","w") as out:
-        #     out.write(str(job_posting) + '\n')
-        try: 
+        try:
             job_title = job_posting.find("strong").get_text()
-            company_name = job_posting.find("span", class_ =  "job-card-container__primary-description").get_text().strip()
+            company_name = job_posting.find("span", class_="job-card-container__primary-description").get_text().strip()
             job_location = job_posting.find('li', class_='job-card-container__metadata-item').get_text().strip()
-            Job_Link = "https://www.linkedin.com/" + job_posting.find('a', class_ ="disabled ember-view job-card-container__link job-card-list__title")['href']
+            Job_Link = "https://www.linkedin.com/" + job_posting.find('a', class_="disabled ember-view job-card-container__link job-card-list__title")['href']
 
-            if "Data" in job_title or "AI" in job_title or "ML" in job_title or "Machine Learning" in job_title or "Research" in job_title:
+            # Checking if job title contains relevant keywords
+            if any(keyword in job_title for keyword in ["Data", "AI", "ML", "Machine Learning", "Research"]):
                 if "Remote" in job_location:
                     data.append({
                         'Job Title': job_title,
@@ -91,7 +81,7 @@ for page_num in range(1, 150):
                         'Location': job_location,
                         'Job Link': Job_Link,
                         'Work Type': 'Remote',
-                        })          
+                    })
                 elif "Hybrid" in job_location:
                     data.append({
                         'Job Title': job_title,
@@ -99,7 +89,7 @@ for page_num in range(1, 150):
                         'Location': job_location,
                         'Job Link': Job_Link,
                         'Work Type': 'Hybrid',
-                        })
+                    })
                 else:
                     data.append({
                         'Job Title': job_title,
@@ -107,12 +97,14 @@ for page_num in range(1, 150):
                         'Location': job_location,
                         'Job Link': Job_Link,
                         'Work Type': 'On-Site',
-                        })
+                    })
         except:
             print("Fail To Find Job Info")
-            pass    
+            pass
 
-
+# Creating a DataFrame from collected data and saving it to a CSV file
 df = pd.DataFrame(data)
-df.to_csv(f'linkedin_jobs_TEST.csv', index=False)
+df.to_csv(f'DESIREDCSVNAME.csv', index=False)
+
+# Quitting the browser
 driver.quit()
