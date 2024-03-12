@@ -3,11 +3,7 @@ This is a pip freeze file that delinneates the libraries, and their respective v
 and have matching versions to eliminate potential conflicts and errors.
 
 LinkedIn_Jobs.csv
-Raw CSV file that contains first initial scrape of LinkedIn. Does not refine jobs down to data specific internships and will contain erroneous internships.
-
-Linkedin_Jobs_TEST.csv 
-This file is trimmed down and is complete (in the scrapers current beta state).
-Potential Feature Additions: Internship Date, Requirements/Description
+Raw CSV file that contains first initial scrape of LinkedIn. Planning on adding additional columns that will hold additional info soon. 
 
 ChromeDriver
 I have the latest version of chrome, and the chromedriver.exe contained in the repo is the version I utilzied for the project.
